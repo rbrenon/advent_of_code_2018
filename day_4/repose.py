@@ -6,7 +6,8 @@ def main():
         raw_input = file.readlines()
 
     input_data = parse_data(raw_input)
-    part_one(input_data)
+    sleeping_dict = part_one(input_data)
+    part_two(sleeping_dict)
     return
 
 
@@ -23,7 +24,7 @@ def parse_data(data: list[str]) -> list[tuple]:
     return parsed_data
 
 
-def part_one(data):
+def part_one(data) -> dict:
     repose = {}
     guard_no = 0
 
@@ -81,9 +82,6 @@ def part_one(data):
             most_time_asleep = repose[guard_on_duty]["sleep"]
             sleepiest_guard = guard_on_duty
 
-    pprint(f"Guard: {sleepiest_guard} slept for {most_time_asleep} minutes")
-    # pprint(f"{repose[sleepiest_guard]}")
-
     # sorts all
     # guard_by_total_sleep = [(guard, repose[guard]['sleep']) for guard in repose]  # (guard, sleep) tuples
     # guard_by_total_sleep.sort(key=lambda guard_sleep_tuple: guard_sleep_tuple[1], reverse=True) # (guard, sleep) tuples sorted descending by sleep
@@ -100,19 +98,45 @@ def part_one(data):
         sleep_min = int(repose[sleepiest_guard]["asleep"][index][0].split(":")[1])
         for minute in range(sleep_min, wake_min):
             repose[sleepiest_guard]["min_asleep"][minute] += 1
-    # pprint(repose[sleepiest_guard])
 
     # find the minute where the guard sleeps the most
     min_asleep_most = max(
         repose[sleepiest_guard]["min_asleep"],
         key=repose[sleepiest_guard]["min_asleep"].get,
     )
-    pprint(f"min asleep most: {min_asleep_most}")
 
-    pprint(
+    print(
         f"Part One solution is: {sleepiest_guard} * {min_asleep_most} = {sleepiest_guard * min_asleep_most}"
     )
     # correct: 35184  high: 35917; low: 34451
+
+    return repose
+
+
+def part_two(repose: dict) -> None:
+    guard_minute_totalsleep = []
+
+    for guard in repose:
+        repose[guard]["min_asleep"] = {x: 0 for x in range(60)}
+        for index, wake_time in enumerate(repose[guard]["awake"]):
+            wake_min = int(wake_time[0].split(":")[1])
+            sleep_min = int(repose[guard]["asleep"][index][0].split(":")[1])
+            for minute in range(sleep_min, wake_min):
+                repose[guard]["min_asleep"][minute] += 1
+
+        # find the minute where the guard sleeps the most
+        min_asleep_most = max(
+            repose[guard]["min_asleep"],
+            key=repose[guard]["min_asleep"].get,
+        )
+
+        for k, v in repose[guard]["min_asleep"].items():
+            if k == min_asleep_most:
+                guard_minute_totalsleep.append((v, guard, k))
+                pass
+
+    guard_minute_totalsleep.sort(reverse=True)
+    print(f"Part two: {guard_minute_totalsleep[0][1]} * {guard_minute_totalsleep[0][2]} = {guard_minute_totalsleep[0][1] * guard_minute_totalsleep[0][2]}")    # 37886
 
 
 if __name__ == "__main__":
